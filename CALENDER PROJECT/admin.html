@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+
+        h1 {
+            color: #007BFF;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #admin-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .dark-mode #admin-container {
+            background: #1e1e1e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        #event-form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        #event-form label {
+            margin-bottom: 5px;
+        }
+
+        #event-form input,
+        #event-form select {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #event-form button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #event-form button:hover {
+            background-color: #0056b3;
+        }
+
+        #event-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .event-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-item .event-actions {
+            display: flex;
+        }
+
+        .event-item .event-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+            color: #777;
+            transition: color 0.3s ease;
+        }
+
+        .event-item .event-actions button:hover {
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+
+    <div id="admin-container">
+        <form id="event-form">
+            <label for="event-date">Date:</label>
+            <input type="date" id="event-date" required>
+
+            <label for="event-name">Event Name:</label>
+            <input type="text" id="event-name" required>
+
+            <label for="event-type">Type:</label>
+            <select id="event-type">
+                <option value="event">Event</option>
+                <option value="exam">Exam</option>
+                <option value="holiday">Holiday</option>
+                <option value="timetable">Timetable</option>
+            </select>
+
+            <button type="submit">Add Event</button>
+        </form>
+
+        <ul id="event-list">
+            <!-- Events will be added here -->
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const eventForm = document.getElementById('event-form');
+            const eventDateInput = document.getElementById('event-date');
+            const eventNameInput = document.getElementById('event-name');
+            const eventTypeSelect = document.getElementById('event-type');
+            const eventList = document.getElementById('event-list');
+
+            let events = JSON.parse(localStorage.getItem('events')) || {};
+
+            function renderEvents() {
+                eventList.innerHTML = '';
+                Object.keys(events).forEach(date => {
+                    events[date].forEach((event, index) => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('event-item');
+                        listItem.innerHTML = `
+                            <span>${date}: ${event.name} (${event.type})</span>
+                            <div class="event-actions">
+                                <button onclick="editEvent('${date}', ${index})"><i class="fas fa-edit"></i></button>
+                                <button onclick="removeEvent('${date}', ${index})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        eventList.appendChild(listItem);
+                    });
+                });
+            }
+
+            eventForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const date = eventDateInput.value;
+                const name = eventNameInput.value;
+                const type = eventTypeSelect.value;
+
+                if (date && name && type) {
+                    if (!events[date]) {
+                        events[date] = [];
+                    }
+                    events[date].push({ name: name, type: type });
+                    localStorage.setItem('events', JSON.stringify(events));
+                    renderEvents();
+                }
+            });
+
+            // Edit Event Function
+            window.editEvent = function (date, index) {
+                const event = events[date][index];
+                const newName = prompt("Edit event name:", event.name);
+                if (newName !== null) {
+                    event.name = newName.trim();
+                    localStorage.setItem('events', JSON.stringify(events));
+                    renderEvents();
+                }
+            };
+
+            // Remove Event Function
+            window.removeEvent = function (date, index) {
+                if (confirm("Are you sure you want to delete this event?")) {
+                    events[date].splice(index, 1);
+                    if (events[date].length === 0) {
+                        delete events[date];
+                    }
+                    localStorage.setItem('events', JSON.stringify(events));
+                    renderEvents();
+                }
+            };
+
+            renderEvents();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Timetable</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+
+        h1 {
+            color: #007BFF;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #content-container {
+            display: flex;
+            width: 80%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+
+        #task-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 60%;
+            margin-right: 20px;
+        }
+
+        .dark-mode #task-container {
+            background: #1e1e1e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        #daily-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 40%;
+        }
+
+        .dark-mode #daily-summary {
+            background: #1e1e1e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        #task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .task-item .task-actions {
+            display: flex;
+        }
+
+        .task-item .task-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+            color: #777;
+            transition: color 0.3s ease;
+        }
+
+        .task-item .task-actions button:hover {
+            color: #007BFF;
+        }
+
+        #add-task-form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        #new-task {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #add-task-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #add-task-btn:hover {
+            background-color: #218838;
+        }
+
+        #progress-container {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            height: 20px;
+            margin-bottom: 20px;
+        }
+
+        #progress-bar {
+            background-color: #007BFF;
+            height: 100%;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #progress-text {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Daily Summary Styles */
+        #daily-summary h2 {
+            margin-bottom: 15px;
+        }
+
+        #daily-summary-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item .task-status {
+            font-style: italic;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Personal Timetable</h1>
+
+    <div id="content-container">
+        <div id="task-container">
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div id="progress-text">0% Complete</div>
+
+            <form id="add-task-form">
+                <input type="text" id="new-task" placeholder="Add new task" required>
+                <button type="submit" id="add-task-btn">Add Task</button>
+            </form>
+
+            <ul id="task-list">
+                <!-- Tasks will be added here -->
+            </ul>
+        </div>
+
+        <div id="daily-summary">
+            <h2>Daily Summary</h2>
+            <ul id="daily-summary-list">
+                <!-- Daily summary will be added here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const taskList = document.getElementById('task-list');
+            const addTaskForm = document.getElementById('add-task-form');
+            const newTaskInput = document.getElementById('new-task');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const dailySummaryList = document.getElementById('daily-summary-list');
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            function updateProgressBar() {
+                const completedTasks = tasks.filter(task => task.completed).length;
+                const progress = tasks.length === 0 ? 0 : (completedTasks / tasks.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${progress.toFixed(0)}% Complete`;
+            }
+
+            function renderTasks() {
+                taskList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('task-item');
+                    listItem.innerHTML = `
+                        <input type="checkbox" id="task-${index}" ${task.completed ? 'checked' : ''}>
+                        <label for="task-${index}">${task.text}</label>
+                        <div class="task-actions">
+                            <button onclick="editTask(${index})"><i class="fas fa-edit"></i></button>
+                            <button onclick="removeTask(${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                    taskList.appendChild(listItem);
+
+                    const checkbox = listItem.querySelector('input[type="checkbox"]');
+                    checkbox.addEventListener('change', function () {
+                        tasks[index].completed = this.checked;
+                        localStorage.setItem('tasks', JSON.stringify(tasks));
+                        updateProgressBar();
+                        updateDailySummary();
+                    });
+                });
+                updateProgressBar();
+                updateDailySummary();
+            }
+
+            addTaskForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const taskText = newTaskInput.value.trim();
+                if (taskText !== '') {
+                    tasks.push({ text: taskText, completed: false });
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    newTaskInput.value = '';
+                    renderTasks();
+                }
+            });
+
+            // Edit Task Function
+            window.editTask = function (index) {
+                const newText = prompt("Edit task:", tasks[index].text);
+                if (newText !== null) {
+                    tasks[index].text = newText.trim();
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    renderTasks();
+                }
+            };
+
+            // Remove Task Function
+            window.removeTask = function (index) {
+                if (confirm("Are you sure you want to delete this task?")) {
+                    tasks.splice(index, 1);
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    renderTasks();
+                }
+            };
+
+            function updateDailySummary() {
+                dailySummaryList.innerHTML = '';
+                let completedTasks = 0;
+                tasks.forEach(task => {
+                    if (task.completed) {
+                        completedTasks++;
+                    }
+                });
+
+                const completionPercentage = tasks.length === 0 ? 0 : (completedTasks / tasks.length) * 100;
+
+                tasks.forEach(task => {
+                    const summaryItem = document.createElement('li');
+                    summaryItem.classList.add('summary-item');
+                    summaryItem.innerHTML = `
+                        <span>${task.text}</span>
+                        <span class="task-status">${task.completed ? 'Completed' : 'Not Completed'}</span>
+                    `;
+                    dailySummaryList.appendChild(summaryItem);
+                });
+
+                const percentageItem = document.createElement('li');
+                percentageItem.innerHTML = `<strong>Daily Completion: ${completionPercentage.toFixed(0)}%</strong>`;
+                dailySummaryList.appendChild(percentageItem);
+            }
+
+            renderTasks();
+        });
+    </script>
+</body>
+</html>

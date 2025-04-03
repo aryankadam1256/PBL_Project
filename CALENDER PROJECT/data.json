@@ -1,0 +1,15 @@
+{
+    "2025-02-05": [
+        { "type": "timetable", "time": "9:00 - 10:00 AM", "subject": "Mathematics", "teacher": "Prof. A" },
+        { "type": "timetable", "time": "10:00 - 11:00 AM", "subject": "Physics", "teacher": "Prof. B" }
+    ],
+    "2025-02-14": [
+        { "type": "holiday", "name": "SPPU Holiday - Shivaji Jayanti" }
+    ],
+    "2025-02-20": [
+        { "type": "event", "name": "Tech Fest", "description": "College-wide technical event" }
+    ],
+    "2025-03-10": [
+        { "type": "exam", "name": "Mid-Sem Exam - Data Structures" }
+    ]
+}
