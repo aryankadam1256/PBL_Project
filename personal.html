@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Timetable with Calendar & Speedometer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #007BFF;
+            text-align: center;
+        }
+
+        #content-container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 80%;
+            max-width: 1200px;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        #task-container, #calendar-container, #speedometer-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            text-align: center;
+        }
+
+        #add-task-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #new-task, #task-date {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #add-task-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #task-list, #calendar {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .calendar-task {
+            background: #007BFF;
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+        #speedometer {
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Personal Timetable with Calendar & Speedometer</h1>
+
+    <div id="content-container">
+        <div id="task-container">
+            <form id="add-task-form">
+                <input type="text" id="new-task" placeholder="Add new task" required>
+                <input type="date" id="task-date" required>
+                <button type="submit" id="add-task-btn">Add Task</button>
+            </form>
+            <ul id="task-list"></ul>
+        </div>
+
+        <div id="calendar-container">
+            <h2>Task Calendar</h2>
+            <ul id="calendar"></ul>
+        </div>
+
+        <div id="speedometer-container">
+            <h2>Task Completion Progress</h2>
+            <canvas id="speedometer" width="200" height="200"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const taskList = document.getElementById('task-list');
+            const calendar = document.getElementById('calendar');
+            const addTaskForm = document.getElementById('add-task-form');
+            const newTaskInput = document.getElementById('new-task');
+            const taskDateInput = document.getElementById('task-date');
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            function updateSpeedometer() {
+                const canvas = document.getElementById('speedometer');
+                const ctx = canvas.getContext('2d');
+                
+                const completedTasks = tasks.filter(task => task.completed).length;
+                const percentage = tasks.length === 0 ? 0 : (completedTasks / tasks.length) * 100;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.beginPath();
+                ctx.arc(100, 100, 80, 0.75 * Math.PI, 2.25 * Math.PI);
+                ctx.lineWidth = 15;
+                ctx.strokeStyle = "#ddd";
+                ctx.stroke();
+
+                ctx.beginPath();
+                const endAngle = 0.75 * Math.PI + (percentage / 100) * 1.5 * Math.PI;
+                ctx.arc(100, 100, 80, 0.75 * Math.PI, endAngle);
+                ctx.strokeStyle = "#007BFF";
+                ctx.stroke();
+
+                ctx.font = "20px Poppins";
+                ctx.fillStyle = "#212529";
+                ctx.textAlign = "center";
+                ctx.fillText(`${percentage.toFixed(0)}%`, 100, 110);
+            }
+
+            function renderTasks() {
+                taskList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('task-item');
+                    listItem.innerHTML = `
+                        <input type="checkbox" id="task-${index}" ${task.completed ? 'checked' : ''}>
+                        <label for="task-${index}">${task.text} - <small>${task.date}</small></label>
+                        <button onclick="removeTask(${index})"><i class="fas fa-trash"></i></button>
+                    `;
+                    taskList.appendChild(listItem);
+
+                    const checkbox = listItem.querySelector('input[type="checkbox"]');
+                    checkbox.addEventListener('change', function () {
+                        tasks[index].completed = this.checked;
+                        localStorage.setItem('tasks', JSON.stringify(tasks));
+                        renderCalendar();
+                        updateSpeedometer();
+                    });
+                });
+
+                renderCalendar();
+                updateSpeedometer();
+            }
+
+            function getCurrentDateTasks() {
+                const today = formatDateToString(new Date());
+                return tasks.filter(task => formatDateToString(new Date(task.date)) === today);
+            }
+
+            function renderCalendar() {
+                calendar.innerHTML = '';
+                const todayTasks = getCurrentDateTasks();
+                
+                if (todayTasks.length === 0) {
+                    const noTaskMsg = document.createElement('li');
+                    noTaskMsg.classList.add('calendar-task');
+                    noTaskMsg.style.backgroundColor = '#f8f9fa';
+                    noTaskMsg.style.color = '#666';
+                    noTaskMsg.innerHTML = 'No tasks for today';
+                    calendar.appendChild(noTaskMsg);
+                } else {
+                    todayTasks.forEach(task => {
+                        const taskElement = document.createElement('li');
+                        taskElement.classList.add('calendar-task');
+                        taskElement.style.backgroundColor = task.completed ? '#28a745' : '#007BFF';
+                        taskElement.innerHTML = `
+                            <span>${task.text}</span>
+                            <small>${task.completed ? '(Completed)' : '(Pending)'}</small>
+                        `;
+                        calendar.appendChild(taskElement);
+                    });
+                }
+            }
+
+            function formatDateToString(date) {
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            }
+
+            addTaskForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const taskText = newTaskInput.value.trim();
+                const taskDate = taskDateInput.value;
+                if (taskText !== '' && taskDate !== '') {
+                    tasks.push({ text: taskText, date: taskDate, completed: false });
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    newTaskInput.value = '';
+                    taskDateInput.value = '';
+                    renderTasks();
+                }
+            });
+
+            window.removeTask = function (index) {
+                tasks.splice(index, 1);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                renderTasks();
+            };
+
+            let lastDate = formatDateToString(new Date());
+
+            function checkDateAndRefresh() {
+                const currentDate = formatDateToString(new Date());
+                if (currentDate !== lastDate) {
+                    lastDate = currentDate;
+                    renderCalendar();
+                }
+                renderCalendar();
+            }
+
+            checkDateAndRefresh();
+            setInterval(checkDateAndRefresh, 60000);
+
+            window.onload = function() {
+                renderCalendar();
+            };
+
+            renderTasks();
+        });
+    </script>
+</body>
+</html>
