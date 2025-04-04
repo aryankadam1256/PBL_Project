@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             let storedEvents = JSON.parse(localStorage.getItem("events")) || {};
-            let storedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
             // Merge stored events with fetched data
             Object.keys(storedEvents).forEach(date => {
@@ -14,14 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     data[date] = [];
                 }
                 data[date] = data[date].concat(storedEvents[date]);
-            });
-
-            // Convert tasks into event format
-            storedTasks.forEach(task => {
-                if (!data[task.date]) {
-                    data[task.date] = [];
-                }
-                data[task.date].push({ type: "task", name: task.text });
             });
 
             // Initialize FullCalendar
@@ -45,13 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 dateClick: function(info) {
                     const selectedDate = info.dateStr;
-                    const tasksForDate = storedTasks.filter(task => task.date === selectedDate);
-
-                    if (tasksForDate.length > 0) {
-                        alert(`Tasks for ${selectedDate}:\n` + tasksForDate.map(task => `- ${task.text}`).join('\n'));
-                    } else {
-                        alert(`No tasks for ${selectedDate}.`);
-                    }
+                    window.location.href = `day.html?date=${selectedDate}`;
                 }
             });
 

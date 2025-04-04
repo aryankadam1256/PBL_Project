@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day Events</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container my-5">
+        <h1 id="date-title"></h1>
+        <div id="event-section"></div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedDate = urlParams.get("date") || new Date().toISOString().split('T')[0]; // Default to today
+        document.getElementById("date-title").innerText = "Tasks & Events for " + selectedDate;
+
+        fetch("data.json")
+            .then(response => response.json())
+            .then(data => {
+                const eventSection = document.getElementById("event-section");
+
+                const storedEvents = JSON.parse(localStorage.getItem('events')) || {};
+
+                if (data[selectedDate]) {
+                    data[selectedDate].forEach(entry => {
+                        if (entry.type === "holiday") {
+                            eventSection.innerHTML += `<div class='alert alert-danger'><b>Holiday:</b> ${entry.name}</div>`;
+                        } else if (entry.type === "event") {
+                            eventSection.innerHTML += `<div class='alert alert-primary'><b>Event:</b> ${entry.name} - ${entry.description}</div>`;
+                        } else if (entry.type === "exam") {
+                            eventSection.innerHTML += `<div class='alert alert-warning'><b>Exam:</b> ${entry.name}</div>`;
+                        }
+                    });
+                }
+
+                if (storedEvents[selectedDate]) {
+                    storedEvents[selectedDate].forEach(event => {
+                        eventSection.innerHTML += `<div class='alert alert-success'><b>Admin Task:</b> ${event.name}</div>`;
+                    });
+                } else if (!data[selectedDate]) {
+                    eventSection.innerHTML = "<div class='alert alert-secondary'>No tasks or events available</div>";
+                }
+            });
+    </script>
+</body>
+</html>

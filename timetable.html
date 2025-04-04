@@ -15,55 +15,105 @@
             <thead>
                 <tr>
                     <th>Time</th>
-                    <th>Subject</th>
-                    <th>Teacher</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
                 </tr>
             </thead>
-            <tbody id="timetable-body"></tbody>
+            <tbody id="weekly-timetable-body">
+                <!-- Rows for each time slot -->
+                <tr>
+                    <td>8:15 - 9:15</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                </tr>
+                <tr>
+                    <td>9:15 - 10:15</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                </tr>
+                <tr>
+                    <td>10:15 - 11:15</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                </tr>
+                <tr>
+                    <td>11:15 - 12:15</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                </tr>
+                <tr>
+                    <td>12:15 - 12:30</td>
+                    <td colspan="5" class="text-center">Break</td>
+                </tr>
+                <tr>
+                    <td>1:30 - 2:30</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                </tr>
+                <tr>
+                    <td>2:30 - 3:30</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                </tr>
+            </tbody>
         </table>
+        <button id="save-timetable-btn" class="btn btn-primary">Save Timetable</button>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const selectedDate = urlParams.get("date") || new Date().toISOString().split('T')[0]; // Default to today
-        document.getElementById("date-title").innerText = "Events & Timetable for " + selectedDate;
+        document.getElementById("date-title").innerText = "Weekly Timetable";
 
-        fetch("data.json")
-            .then(response => response.json())
-            .then(data => {
-                const eventSection = document.getElementById("event-section");
-                const timetableBody = document.getElementById("timetable-body");
+        // Save timetable to localStorage
+        document.getElementById("save-timetable-btn").addEventListener("click", () => {
+            const timetable = [];
+            const rows = document.querySelectorAll("#weekly-timetable-body tr");
+            rows.forEach(row => {
+                const cells = Array.from(row.children).map(cell => cell.innerText.trim());
+                timetable.push(cells);
+            });
+            localStorage.setItem("weeklyTimetable", JSON.stringify(timetable));
+            alert("Timetable saved successfully!");
+        });
 
-                const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-                const tasksForDate = tasks.filter(task => task.date === selectedDate);
-
-                if (data[selectedDate]) {
-                    data[selectedDate].forEach(entry => {
-                        if (entry.type === "holiday") {
-                            eventSection.innerHTML += `<div class='alert alert-danger'><b>Holiday:</b> ${entry.name}</div>`;
-                        } else if (entry.type === "event") {
-                            eventSection.innerHTML += `<div class='alert alert-primary'><b>Event:</b> ${entry.name} - ${entry.description}</div>`;
-                        } else if (entry.type === "exam") {
-                            eventSection.innerHTML += `<div class='alert alert-warning'><b>Exam:</b> ${entry.name}</div>`;
-                        } else {
-                            let row = `<tr>
-                                <td>${entry.time}</td>
-                                <td>${entry.subject}</td>
-                                <td>${entry.teacher}</td>
-                            </tr>`;
-                            timetableBody.innerHTML += row;
+        // Load timetable from localStorage
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedTimetable = JSON.parse(localStorage.getItem("weeklyTimetable")) || [];
+            const rows = document.querySelectorAll("#weekly-timetable-body tr");
+            rows.forEach((row, rowIndex) => {
+                const cells = row.children;
+                if (rowIndex === 4) return; // Skip the break row
+                if (savedTimetable[rowIndex]) {
+                    savedTimetable[rowIndex].forEach((text, cellIndex) => {
+                        if (cells[cellIndex] && cells[cellIndex].hasAttribute("contenteditable")) {
+                            cells[cellIndex].innerText = text;
                         }
                     });
                 }
-
-                if (tasksForDate.length > 0) {
-                    tasksForDate.forEach(task => {
-                        eventSection.innerHTML += `<div class='alert alert-success'><b>Task:</b> ${task.text}</div>`;
-                    });
-                } else if (!data[selectedDate]) {
-                    eventSection.innerHTML = "<div class='alert alert-secondary'>No events or timetable available</div>";
-                }
             });
+        });
     </script>
 
 </body>
