@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Calendar</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            transition: background 0.3s ease, color 0.3s ease;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+
+        /* Dashboard Styles */
+        #dashboard {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            box-sizing: border-box; /* Ensure padding doesn't affect width */
+        }
+
+        #dashboard a, #dashboard button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            transition: background-color 0.3s ease;
+        }
+
+        #dashboard a:hover, #dashboard button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Calendar Styles */
+        h1 {
+            color: #007BFF;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #calendar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 80%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .dark-mode #calendar {
+            background: #1e1e1e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        #calendar p {
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .dark-mode #calendar p {
+            color: #ddd;
+        }
+
+        /* Utility Button Styles */
+        #utility-buttons {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        #utility-buttons button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            background-color: #6c757d;
+            transition: background-color 0.3s ease;
+        }
+
+        #utility-buttons button:hover {
+            background-color: #5a6268;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.75em;
+            }
+            #calendar {
+                width: 95%;
+                padding: 15px;
+            }
+            #dashboard {
+                flex-direction: column;
+                align-items: center;
+            }
+            #dashboard a, #dashboard button {
+                margin-bottom: 10px;
+                width: 80%;
+                text-align: center;
+            }
+            #utility-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            #utility-buttons button {
+                margin-bottom: 10px;
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>📅 College Calendar</h1>
+
+    <!-- Dashboard -->
+    <div id="dashboard">
+        <a href="personal.html"><i class="fas fa-tasks"></i> Personal Timetable</a>
+        <a href="admin.html"><i class="fas fa-tools"></i> Admin Panel</a>
+    </div>
+
+    <!-- Calendar -->
+    <div id="calendar">
+        <p>Click on a date or use voice control to view your timetable.</p>
+        <div id="timetable">
+            <!-- Timetable will be displayed here -->
+        </div>
+    </div>
+
+    <!-- Utility Buttons -->
+    <div id="utility-buttons">
+        <button id="darkModeToggle"><i class="fas fa-moon"></i> Dark Mode</button>
+        <button id="voiceButton"><i class="fas fa-microphone"></i> Click & Speak</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/index.global.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                dateClick: function (info) {
+                    const selectedDate = info.dateStr;
+                    window.location.href = `timetable.html?date=${selectedDate}`; // Redirect to timetable.html
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
