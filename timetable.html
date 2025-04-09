@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+    <div class="container my-5">
+        <h1 id="date-title"></h1>
+        <div id="event-section"></div>  
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="weekly-timetable-body">
+                <!-- Rows for each time slot -->
+                <tr>
+                    <td contenteditable="true">8:15 - 9:15</td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td contenteditable="true"></td>
+                    <td><button class="btn btn-danger btn-sm remove-slot-btn">Remove</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button id="add-slot-btn" class="btn btn-success">Add Slot</button>
+        <button id="save-timetable-btn" class="btn btn-primary">Save Timetable</button>
+    </div>
+
+    <!-- Collapsible navigation form for color options -->
+    <div id="customize-panel" class="position-fixed top-0 end-0 bg-light border" style="width: 300px; height: 100vh; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s;">
+        <h5 class="p-3">Customize Appearance</h5>
+        <div class="p-3">
+            <div class="mb-3">
+                <label for="background-color-picker" class="form-label">Page Background Color:</label>
+                <input type="color" id="background-color-picker" class="form-control form-control-color" value="#ffffff">
+            </div>
+            <div class="mb-3">
+                <label for="cell-background-color-picker" class="form-label">Cell Background Color:</label>
+                <input type="color" id="cell-background-color-picker" class="form-control form-control-color" value="#ffffff">
+                <button id="apply-cell-bg-color-btn" class="btn btn-secondary btn-sm mt-2">Apply to All Cells</button>
+            </div>
+            <div class="mb-3">
+                <label for="cell-text-color-picker" class="form-label">Cell Text Color:</label>
+                <input type="color" id="cell-text-color-picker" class="form-control form-control-color" value="#000000">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle button -->
+    <button id="toggle-panel-btn" class="btn btn-primary position-fixed top-50 end-0" style="transform: translate(50%, -50%);">
+        &#x25C0;
+    </button>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedDate = urlParams.get("date") || new Date().toISOString().split('T')[0]; // Default to today
+        document.getElementById("date-title").innerText = "Weekly Timetable";
+
+        // Add a new time slot
+        document.getElementById("add-slot-btn").addEventListener("click", () => {
+            const tableBody = document.getElementById("weekly-timetable-body");
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td contenteditable="true">New Time</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td><button class="btn btn-danger btn-sm remove-slot-btn">Remove</button></td>
+            `;
+            tableBody.appendChild(newRow);
+            attachRemoveSlotEvent(newRow.querySelector(".remove-slot-btn"));
+        });
+
+        // Remove a time slot
+        function attachRemoveSlotEvent(button) {
+            button.addEventListener("click", (event) => {
+                const row = event.target.closest("tr");
+                row.remove();
+            });
+        }
+
+        // Attach remove event to existing rows
+        document.querySelectorAll(".remove-slot-btn").forEach(button => {
+            attachRemoveSlotEvent(button);
+        });
+
+        // Save timetable to localStorage
+        document.getElementById("save-timetable-btn").addEventListener("click", () => {
+            const timetable = [];
+            const rows = document.querySelectorAll("#weekly-timetable-body tr");
+            rows.forEach(row => {
+                const cells = Array.from(row.children).map(cell => cell.innerText.trim());
+                timetable.push(cells);
+            });
+            localStorage.setItem("weeklyTimetable", JSON.stringify(timetable));
+            alert("Timetable saved successfully!");
+        });
+
+        // Load timetable from localStorage
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedTimetable = JSON.parse(localStorage.getItem("weeklyTimetable")) || [];
+            const tableBody = document.getElementById("weekly-timetable-body");
+            tableBody.innerHTML = ""; // Clear existing rows
+            savedTimetable.forEach(rowData => {
+                const newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td contenteditable="true">${rowData[0] || ""}</td>
+                    <td contenteditable="true">${rowData[1] || ""}</td>
+                    <td contenteditable="true">${rowData[2] || ""}</td>
+                    <td contenteditable="true">${rowData[3] || ""}</td>
+                    <td contenteditable="true">${rowData[4] || ""}</td>
+                    <td contenteditable="true">${rowData[5] || ""}</td>
+                    <td><button class="btn btn-danger btn-sm remove-slot-btn">Remove</button></td>
+                `;
+                tableBody.appendChild(newRow);
+                attachRemoveSlotEvent(newRow.querySelector(".remove-slot-btn"));
+            });
+
+            // Load saved background color
+            const savedColor = localStorage.getItem("backgroundColor");
+            if (savedColor) {
+                document.body.style.backgroundColor = savedColor;
+                colorPicker.value = savedColor;
+            }
+
+            const savedCellColor = localStorage.getItem("cellBackgroundColor");
+            if (savedCellColor) {
+                const cells = document.querySelectorAll("#weekly-timetable-body td[contenteditable='true']");
+                cells.forEach(cell => {
+                    cell.style.backgroundColor = savedCellColor;
+                });
+                cellColorPicker.value = savedCellColor;
+            }
+
+            const savedTextColor = localStorage.getItem("cellTextColor");
+            if (savedTextColor) {
+                const cells = document.querySelectorAll("#weekly-timetable-body td[contenteditable='true']");
+                cells.forEach(cell => {
+                    cell.style.color = savedTextColor;
+                });
+                cellTextColorPicker.value = savedTextColor;
+            }
+        });
+
+        // Change background color of the page
+        const colorPicker = document.getElementById("background-color-picker");
+        colorPicker.addEventListener("input", (event) => {
+            document.body.style.backgroundColor = event.target.value;
+            localStorage.setItem("backgroundColor", event.target.value); // Save color to localStorage
+        });
+
+        // Change background color of table cells
+        const cellColorPicker = document.getElementById("cell-background-color-picker");
+        cellColorPicker.addEventListener("input", (event) => {
+            const cells = document.querySelectorAll("#weekly-timetable-body td[contenteditable='true']");
+            cells.forEach(cell => {
+                cell.style.backgroundColor = event.target.value;
+            });
+            localStorage.setItem("cellBackgroundColor", event.target.value); // Save cell color to localStorage
+        });
+
+        // Apply selected background color to all cells, including header row
+        document.getElementById("apply-cell-bg-color-btn").addEventListener("click", () => {
+            const selectedColor = document.getElementById("cell-background-color-picker").value;
+            const allCells = document.querySelectorAll("table th, table td"); // Select all header and body cells
+            allCells.forEach(cell => {
+                cell.style.backgroundColor = selectedColor;
+            });
+            localStorage.setItem("cellBackgroundColor", selectedColor); // Save cell color to localStorage
+        });
+
+        // Change text color of table cells
+        const cellTextColorPicker = document.getElementById("cell-text-color-picker");
+        cellTextColorPicker.addEventListener("input", (event) => {
+            const cells = document.querySelectorAll("#weekly-timetable-body td[contenteditable='true']");
+            cells.forEach(cell => {
+                cell.style.color = event.target.value;
+            });
+            localStorage.setItem("cellTextColor", event.target.value); // Save text color to localStorage
+        });
+
+        // Toggle the customize panel
+        const togglePanelBtn = document.getElementById("toggle-panel-btn");
+        const customizePanel = document.getElementById("customize-panel");
+
+        togglePanelBtn.addEventListener("click", () => {
+            const isOpen = customizePanel.style.transform === "translateX(0%)";
+            customizePanel.style.transform = isOpen ? "translateX(100%)" : "translateX(0%)";
+            togglePanelBtn.innerHTML = isOpen ? "&#x25C0;" : "&#x25B6;"; // Change arrow direction
+        });
+    </script>
+
+</body>
+</html>
